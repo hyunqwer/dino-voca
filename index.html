@@ -28,16 +28,38 @@
             box-shadow: 0 0 20px #fbbf24;
             border: 2px solid #fbbf24;
         }
+        /* 축하 파티클 애니메이션 */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(800px) rotate(720deg); opacity: 0; }
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 16px;
+            z-index: 50;
+            pointer-events: none;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans h-screen w-screen">
+<body class="bg-gray-100 font-sans h-[100dvh] w-screen overflow-hidden">
 
-<div id="app" class="flex w-full h-full overflow-hidden">
-    <!-- 좌측: 다이노 게임 영역 (60%) -->
-    <div id="game-container" class="relative flex-[6] bg-[#f7f7f7] border-r-4 border-gray-300 overflow-hidden cursor-pointer">
+<div id="app" class="flex portrait:flex-col landscape:flex-row w-full h-full overflow-hidden relative">
+
+    <!-- 시작 화면 (전체화면 유도) -->
+    <div id="start-screen" class="absolute inset-0 z-50 bg-gray-900/95 flex flex-col items-center justify-center text-white backdrop-blur-sm">
+        <h1 class="text-3xl sm:text-5xl font-black mb-2">Dino Spelling</h1>
+        <p class="text-sm sm:text-base text-gray-300 mb-8">가로/세로 편한 방향으로 기기를 들고 아래 버튼을 눌러주세요</p>
+        <button onclick="startGame()" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-xl shadow-lg transition-transform active:scale-95">
+            게임 시작 (전체화면)
+        </button>
+    </div>
+
+    <!-- 좌측(또는 상단): 다이노 게임 영역 -->
+    <div id="game-container" class="relative flex-1 landscape:flex-[6] bg-[#f7f7f7] portrait:border-b-4 landscape:border-r-4 border-gray-300 overflow-hidden cursor-pointer transition-colors duration-1000">
         <div class="absolute top-4 left-4 z-10 flex flex-col gap-1">
-            <div id="score" class="text-2xl font-bold text-gray-700">SCORE: 00000</div>
-            <div id="high-score" class="text-sm font-semibold text-gray-500">HI: 00000</div>
+            <div id="score" class="text-2xl font-bold text-gray-700 transition-colors duration-1000">SCORE: 00000</div>
+            <div id="high-score" class="text-sm font-semibold text-gray-500 transition-colors duration-1000">HI: 00000</div>
         </div>
         
         <div id="game-msg" class="absolute inset-0 flex items-center justify-center z-20 hidden">
@@ -51,36 +73,42 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 
-    <!-- 우측: 스펠링 퀴즈 영역 (40%) -->
-    <div id="quiz-container" class="flex-[4] bg-white flex flex-col p-6 shadow-2xl z-10">
-        <div class="flex-1 flex flex-col items-center justify-center space-y-8">
-            <div class="text-center">
-                <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
-                <h2 id="hint-text" class="text-3xl font-black text-gray-800 mt-1">사과</h2>
+    <!-- 우측(또는 하단): 스펠링 퀴즈 영역 -->
+    <div id="quiz-container" class="flex-1 landscape:flex-[4] bg-white flex flex-col p-3 sm:p-6 shadow-2xl z-10 overflow-hidden relative">
+        
+        <!-- 생명(하트) 표시 영역 추가 -->
+        <div id="life-display" class="absolute top-4 right-4 sm:top-6 sm:right-6 text-lg sm:text-2xl tracking-widest z-20 transition-all duration-300">
+            ❤️❤️❤️
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center space-y-2 sm:space-y-8 min-h-0">
+            <div class="text-center mt-6 sm:mt-0">
+                <span class="text-[10px] sm:text-xs font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
+                <div id="hint-icon" class="text-4xl sm:text-6xl mt-2 mb-1">🍎</div>
+                <h2 id="hint-text" class="text-xl sm:text-3xl font-black text-gray-800 mt-1">사과</h2>
             </div>
 
-            <!-- 단어 표시 영역 -->
-            <div id="word-display" class="flex gap-2 text-4xl font-mono font-bold text-gray-800">
+            <div id="word-display" class="flex gap-1 sm:gap-2 text-2xl sm:text-4xl font-mono font-bold text-gray-800">
                 <!-- A _ _ L E 형태 -->
             </div>
 
             <!-- 메시지 박스 (결과 알림) -->
-            <div id="feedback-msg" class="h-8 text-lg font-bold transition-all duration-300 opacity-0">
+            <div id="feedback-msg" class="h-6 sm:h-8 text-sm sm:text-lg font-bold transition-all duration-300 opacity-0">
                 정답입니다! (+보너스)
             </div>
 
             <!-- 선택 블록 영역 -->
-            <div id="options-grid" class="grid grid-cols-2 gap-4 w-full max-w-xs">
+            <div id="options-grid" class="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-[180px] sm:max-w-xs">
                 <!-- 버튼들 -->
             </div>
         </div>
 
-        <div class="mt-auto pt-6 border-t border-gray-100">
-            <div class="flex items-center justify-between text-sm text-gray-400 font-medium">
+        <div class="mt-auto pt-2 sm:pt-6 border-t border-gray-100 shrink-0">
+            <div class="flex items-center justify-between text-xs sm:text-sm text-gray-400 font-medium">
                 <span>COMBO: <span id="combo-count" class="text-orange-500 font-bold">0</span></span>
                 <span>Power Mode: <span id="power-status">OFF</span></span>
             </div>
-            <div class="w-full bg-gray-200 h-2 rounded-full mt-2 overflow-hidden">
+            <div class="w-full bg-gray-200 h-1.5 sm:h-2 rounded-full mt-1 sm:mt-2 overflow-hidden">
                 <div id="power-bar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
             </div>
         </div>
@@ -88,13 +116,93 @@
 </div>
 
 <script>
+    // --- 효과음 (Web Audio API) 설정 ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSound(type) {
+        if (!gameStarted || audioCtx.state === 'suspended') return;
+        
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        
+        if (type === 'jump') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+            gainNode.gain.setValueAtTime(0.15, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'wrong') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (type === 'power') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.setValueAtTime(600, now + 0.1);
+            osc.frequency.setValueAtTime(800, now + 0.2);
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        } else if (type === 'gameover') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+    }
+
+    // --- 축하 파티클(Confetti) 로직 ---
+    function fireConfetti() {
+        const container = document.getElementById('quiz-container');
+        const colors = ['#fce18a', '#ff726d', '#b48def', '#f4306d', '#42a5f5', '#66bb6a'];
+        
+        for (let i = 0; i < 40; i++) {
+            const conf = document.createElement('div');
+            conf.className = 'confetti-piece rounded-sm';
+            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            conf.style.left = Math.random() * 100 + '%';
+            conf.style.top = '-20px';
+            
+            // 랜덤 회전 및 떨어지는 시간 부여
+            const duration = Math.random() * 1.5 + 1;
+            conf.style.animation = `confetti-fall ${duration}s ease-in forwards`;
+            
+            container.appendChild(conf);
+            
+            // 애니메이션 종료 후 DOM에서 제거
+            setTimeout(() => conf.remove(), duration * 1000);
+        }
+    }
+
     // --- 데이터 설정 ---
     const quizWords = [
-        { word: "APPLE", hint: "사과", blanks: [1, 2, 4], options: ["P", "E", "R", "T"] },
-        { word: "BANANA", hint: "바나나", blanks: [1, 3, 5], options: ["A", "N", "B", "M"] },
-        { word: "ORANGE", hint: "오렌지", blanks: [1, 2, 5], options: ["R", "A", "G", "E"] },
-        { word: "SCHOOL", hint: "학교", blanks: [1, 2, 5], options: ["C", "H", "L", "O"] },
-        { word: "MELON", hint: "멜론", blanks: [1, 2, 3], options: ["E", "L", "O", "N"] }
+        { word: "APPLE", hint: "사과", icon: "🍎", blanks: [1, 2, 4], options: ["P", "E", "R", "T"] },
+        { word: "BANANA", hint: "바나나", icon: "🍌", blanks: [1, 3, 5], options: ["A", "N", "B", "M"] },
+        { word: "ORANGE", hint: "오렌지", icon: "🍊", blanks: [1, 2, 5], options: ["R", "A", "G", "E"] },
+        { word: "SCHOOL", hint: "학교", icon: "🏫", blanks: [1, 2, 5], options: ["C", "H", "L", "O"] },
+        { word: "MELON", hint: "멜론", icon: "🍈", blanks: [1, 2, 3], options: ["E", "L", "O", "N"] }
     ];
 
     // --- 게임 변수 ---
@@ -112,50 +220,84 @@
     const dino = {
         x: 50,
         y: 0,
-        width: 44,
-        height: 47,
+        width: 52,
+        height: 52,
         dy: 0,
         jumpForce: 15,
         gravity: 0.8,
         grounded: false,
-        color: '#535353'
+        emoji: '🦖'
     };
 
+    const plantEmojis = ['🌵', '🌲', '🌴', '🪴'];
     let obstacles = [];
     let gameSpeed = 6;
     let frameCount = 0;
+    let gameStarted = false;
 
-    // --- 퀴즈 변수 ---
+    // --- 생명 및 퀴즈 변수 ---
+    let lives = 3;
+    const MAX_LIVES = 3;
     let currentQuizIndex = 0;
     let solvedCount = 0;
 
     // --- 초기화 및 실행 ---
     window.onload = () => {
         resizeCanvas();
+        updateLivesDisplay();
         initQuiz();
-        animate();
         
-        // 클릭/터치 이벤트 (점프 및 재시작)
+        // 클릭/터치 이벤트
         document.getElementById('game-container').addEventListener('mousedown', () => {
+            if(!gameStarted) return;
             if(gameActive) handleJump();
             else resetGame();
         });
         document.getElementById('game-container').addEventListener('touchstart', (e) => {
             e.preventDefault();
+            if(!gameStarted) return;
             if(gameActive) handleJump();
             else resetGame();
         });
 
-        // 키보드 이벤트 추가 (PC 사용자용)
+        // 키보드 이벤트
         window.addEventListener('keydown', (e) => {
-            // 스페이스바(Space) 또는 위쪽 화살표(ArrowUp)로 점프
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                e.preventDefault(); // 스크롤 방지
+            if(!gameStarted) return;
+            if (e.code === 'Space' || e.key === ' ' || e.code === 'ArrowUp') {
+                e.preventDefault();
                 if(gameActive) handleJump();
                 else resetGame();
             }
         });
     };
+
+    function startGame() {
+        gameStarted = true;
+        
+        // 브라우저 오디오 컨텍스트 락 해제 (사용자 인터랙션 시)
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        try {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            }
+        } catch (error) {
+            console.log("미리보기 환경에서는 전체화면이 제한될 수 있습니다.");
+        }
+        
+        if (document.activeElement) {
+            document.activeElement.blur();
+        }
+
+        document.getElementById('start-screen').classList.add('hidden');
+        resizeCanvas();
+        animate();
+    }
 
     window.addEventListener('resize', resizeCanvas);
 
@@ -166,50 +308,63 @@
         dino.y = canvas.height - dino.height - 20;
     }
 
-    // --- 다이노 게임 로직 ---
     function handleJump() {
         if (dino.grounded) {
             dino.dy = -dino.jumpForce;
             dino.grounded = false;
+            playSound('jump'); // 점프 효과음
         }
     }
 
     function createObstacle() {
-        const height = 30 + Math.random() * 30;
+        const size = 40;
+        const randomEmoji = plantEmojis[Math.floor(Math.random() * plantEmojis.length)];
         obstacles.push({
             x: canvas.width,
-            y: canvas.height - height - 20,
-            width: 20,
-            height: height,
-            color: '#ff4d4d'
+            y: canvas.height - size - 20,
+            width: size,
+            height: size,
+            emoji: randomEmoji
         });
     }
 
     function drawDino() {
-        ctx.fillStyle = isInvincible ? (frameCount % 10 < 5 ? '#fbbf24' : '#535353') : dino.color;
-        // 간단한 공룡 모양 (사각형 조합)
-        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
-        // 눈
-        ctx.fillStyle = 'white';
-        ctx.fillRect(dino.x + 30, dino.y + 10, 5, 5);
+        ctx.save();
+        ctx.font = "52px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
+        ctx.textBaseline = "bottom";
+        
+        if (isInvincible) {
+            ctx.shadowColor = '#fbbf24';
+            ctx.shadowBlur = 20;
+            if (frameCount % 10 < 5) ctx.globalAlpha = 0.5;
+        } else {
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1.0;
+        }
+
+        ctx.translate(dino.x + dino.width / 2, dino.y + dino.height);
+        ctx.scale(-1, 1);
+        ctx.fillText(dino.emoji, -dino.width / 2, 0);
+        ctx.restore();
     }
 
     function drawObstacles() {
+        ctx.font = "40px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
+        ctx.textBaseline = "bottom";
+
         obstacles.forEach((obs, index) => {
             obs.x -= gameSpeed;
-            ctx.fillStyle = obs.color;
-            ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            ctx.fillText(obs.emoji, obs.x, obs.y + obs.height);
 
-            // 충돌 감지
+            const hitMargin = 12;
             if (!isInvincible &&
-                dino.x < obs.x + obs.width &&
-                dino.x + dino.width > obs.x &&
-                dino.y < obs.y + obs.height &&
-                dino.y + dino.height > obs.y) {
+                dino.x + hitMargin < obs.x + obs.width - hitMargin &&
+                dino.x + dino.width - hitMargin > obs.x + hitMargin &&
+                dino.y + hitMargin < obs.y + obs.height - hitMargin &&
+                dino.y + dino.height - hitMargin > obs.y + hitMargin) {
                 gameOver();
             }
 
-            // 화면 밖으로 나감
             if (obs.x + obs.width < 0) {
                 obstacles.splice(index, 1);
                 score += 10;
@@ -225,9 +380,41 @@
         ctx.stroke();
     }
 
+    function updateLivesDisplay() {
+        const lifeEl = document.getElementById('life-display');
+        let hearts = '';
+        for(let i = 0; i < MAX_LIVES; i++) {
+            hearts += i < lives ? '❤️' : '🤍';
+        }
+        lifeEl.innerText = hearts;
+
+        lifeEl.classList.add('scale-110', 'text-red-500');
+        setTimeout(() => {
+            lifeEl.classList.remove('scale-110', 'text-red-500');
+        }, 200);
+    }
+
     function updateScore() {
-        document.getElementById('score').innerText = `SCORE: ${String(Math.floor(score)).padStart(5, '0')}`;
-        document.getElementById('high-score').innerText = `HI: ${String(Math.floor(highScore)).padStart(5, '0')}`;
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('high-score');
+        const container = document.getElementById('game-container');
+
+        scoreEl.innerText = `SCORE: ${String(Math.floor(score)).padStart(5, '0')}`;
+        highScoreEl.innerText = `HI: ${String(Math.floor(highScore)).padStart(5, '0')}`;
+
+        if (score < 200) {
+            container.style.backgroundColor = '#f7f7f7';
+            scoreEl.style.color = '#374151';
+            highScoreEl.style.color = '#6b7280';
+        } else if (score < 400) {
+            container.style.backgroundColor = '#fed7aa';
+            scoreEl.style.color = '#9a3412';
+            highScoreEl.style.color = '#c2410c';
+        } else {
+            container.style.backgroundColor = '#1e293b';
+            scoreEl.style.color = '#f8fafc';
+            highScoreEl.style.color = '#cbd5e1';
+        }
     }
 
     function animate() {
@@ -238,7 +425,6 @@
         frameCount++;
         score += 0.1;
 
-        // 중력 처리
         dino.dy += dino.gravity;
         dino.y += dino.dy;
 
@@ -248,12 +434,8 @@
             dino.grounded = true;
         }
 
-        // 장애물 생성
-        if (frameCount % 100 === 0) {
-            createObstacle();
-        }
+        if (frameCount % 100 === 0) createObstacle();
 
-        // 무적 시간 관리
         if (isInvincible) {
             invincibleTimer--;
             if (invincibleTimer <= 0) {
@@ -271,15 +453,20 @@
         updateScore();
 
         gameSpeed = 6 + Math.floor(score / 500);
-
         animationId = requestAnimationFrame(animate);
     }
 
     function gameOver() {
         gameActive = false;
         cancelAnimationFrame(animationId);
+        playSound('gameover'); // 게임오버 효과음
+
         if (score > highScore) highScore = score;
         document.getElementById('game-msg').classList.remove('hidden');
+        
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+        }
     }
 
     function resetGame() {
@@ -289,70 +476,83 @@
         gameSpeed = 6;
         gameActive = true;
         isInvincible = false;
+        lives = 3;
+        
         document.getElementById('game-msg').classList.add('hidden');
         document.getElementById('power-bar').style.width = "0%";
+        updateScore();
+        updateLivesDisplay();
         animate();
     }
 
-    // --- 퀴즈 로직 ---
     function initQuiz() {
         const quiz = quizWords[currentQuizIndex];
+        document.getElementById('hint-icon').innerText = quiz.icon;
         document.getElementById('hint-text').innerText = quiz.hint;
         
         const wordDisplay = document.getElementById('word-display');
         wordDisplay.innerHTML = '';
         
-        // 단어 렌더링 (일부 빈칸)
         quiz.word.split('').forEach((char, idx) => {
             const span = document.createElement('span');
             if (quiz.blanks.includes(idx)) {
                 span.innerText = '_';
-                span.className = 'border-b-4 border-gray-300 w-8 text-center';
+                span.className = 'border-b-4 border-gray-300 w-6 sm:w-8 text-center';
                 span.id = `blank-${idx}`;
             } else {
                 span.innerText = char;
-                span.className = 'w-8 text-center text-gray-400';
+                span.className = 'w-6 sm:w-8 text-center text-gray-400';
             }
             wordDisplay.appendChild(span);
         });
 
-        // 옵션 버튼 렌더링
         const grid = document.getElementById('options-grid');
         grid.innerHTML = '';
         quiz.options.forEach(letter => {
             const btn = document.createElement('button');
-            btn.className = 'spell-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 rounded-xl text-xl shadow-sm border-b-4 border-gray-300 active:border-b-0 active:mt-1';
+            btn.className = 'spell-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 sm:py-4 rounded-lg sm:rounded-xl text-base sm:text-xl shadow-sm border-b-4 border-gray-300 active:border-b-0 active:mt-1';
             btn.innerText = letter;
-            btn.onclick = () => checkAnswer(letter);
+            btn.onclick = function() {
+                this.blur();
+                checkAnswer(letter);
+            };
             grid.appendChild(btn);
         });
     }
 
     function checkAnswer(letter) {
         const quiz = quizWords[currentQuizIndex];
-        // 현재 채워야 할 가장 첫 번째 빈칸 찾기
         const firstBlankIdx = quiz.blanks.find(idx => document.getElementById(`blank-${idx}`).innerText === '_');
         
         if (firstBlankIdx !== undefined && quiz.word[firstBlankIdx] === letter) {
-            // 정답
+            playSound('correct'); // 정답 효과음
+            
             document.getElementById(`blank-${firstBlankIdx}`).innerText = letter;
             document.getElementById(`blank-${firstBlankIdx}`).classList.remove('text-gray-400');
             document.getElementById(`blank-${firstBlankIdx}`).classList.add('text-blue-600');
             
-            // 모든 빈칸이 채워졌는지 확인
             const remaining = quiz.blanks.some(idx => document.getElementById(`blank-${idx}`).innerText === '_');
             if (!remaining) {
                 showFeedback("참 잘했어요! 무적 모드 발동!", true);
                 activatePower();
-                setTimeout(() => {
-                    nextQuiz();
-                }, 1000);
+                setTimeout(() => nextQuiz(), 1000);
             }
         } else {
-            // 오답
-            showFeedback("틀렸어요! 다시 생각해보세요.", false);
-            combo = 0;
-            updateCombo();
+            playSound('wrong'); // 오답 효과음
+            
+            lives--;
+            updateLivesDisplay();
+            
+            if (lives <= 0) {
+                showFeedback("생명을 모두 소진했습니다!", false);
+                gameOver();
+            } else {
+                showFeedback("틀렸어요! 다시 생각해보세요.", false);
+                combo = 0;
+                updateCombo();
+            }
+            
+            if (navigator.vibrate) navigator.vibrate(100);
         }
     }
 
@@ -366,10 +566,13 @@
     }
 
     function activatePower() {
+        playSound('power'); // 무적 파워업 효과음
+        fireConfetti();     // 빵빠레 파티클 쏘기
+        
         combo++;
         updateCombo();
         isInvincible = true;
-        invincibleTimer = 300; // 약 5초 (60fps 기준)
+        invincibleTimer = 300;
         document.getElementById('power-status').innerText = "ON (SUPER!)";
         document.getElementById('power-status').classList.add('text-orange-500');
         score += 100;
