@@ -70,21 +70,36 @@
             </div>
         </div>
 
+        <!-- 레벨업(진화) 알림 메시지 -->
+        <div id="levelup-msg" class="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 hidden pointer-events-none">
+            <h2 class="text-4xl font-black text-yellow-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] animate-bounce">LEVEL UP! 진화!!</h2>
+        </div>
+
         <canvas id="gameCanvas"></canvas>
     </div>
 
     <!-- 우측(또는 하단): 스펠링 퀴즈 영역 -->
     <div id="quiz-container" class="flex-1 landscape:flex-[4] bg-white flex flex-col p-3 sm:p-6 shadow-2xl z-10 overflow-hidden relative">
         
-        <!-- 생명(하트) 표시 영역 추가 -->
+        <!-- 생명(하트) 표시 영역 -->
         <div id="life-display" class="absolute top-4 right-4 sm:top-6 sm:right-6 text-lg sm:text-2xl tracking-widest z-20 transition-all duration-300">
             ❤️❤️❤️
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center space-y-2 sm:space-y-8 min-h-0">
-            <div class="text-center mt-6 sm:mt-0">
-                <span class="text-[10px] sm:text-xs font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
-                <div id="hint-icon" class="text-4xl sm:text-6xl mt-2 mb-1">🍎</div>
+            <div class="text-center mt-6 sm:mt-0 w-full px-4">
+                <!-- 레벨 뱃지 및 도화선 타이머 -->
+                <div id="level-display" class="inline-block bg-blue-100 text-blue-800 text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-sm">LEVEL 1</div>
+                
+                <!-- 도화선 타이머 (Level 4부터 표시) -->
+                <div id="fuse-container" class="w-full max-w-[200px] h-2 bg-gray-200 rounded-full mt-3 mx-auto overflow-hidden hidden">
+                    <div id="fuse-bar" class="h-full bg-red-500 w-full"></div>
+                </div>
+
+                <div class="mt-2">
+                    <span class="text-[10px] sm:text-xs font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
+                </div>
+                <div id="hint-icon" class="text-4xl sm:text-6xl mt-1 mb-1">🍎</div>
                 <h2 id="hint-text" class="text-xl sm:text-3xl font-black text-gray-800 mt-1">사과</h2>
             </div>
 
@@ -162,6 +177,16 @@
             gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
             osc.start(now);
             osc.stop(now + 0.4);
+        } else if (type === 'levelup') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.setValueAtTime(500, now + 0.15);
+            osc.frequency.setValueAtTime(700, now + 0.3);
+            osc.frequency.setValueAtTime(1000, now + 0.45);
+            gainNode.gain.setValueAtTime(0.15, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.8);
+            osc.start(now);
+            osc.stop(now + 0.8);
         } else if (type === 'gameover') {
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(300, now);
@@ -185,25 +210,68 @@
             conf.style.left = Math.random() * 100 + '%';
             conf.style.top = '-20px';
             
-            // 랜덤 회전 및 떨어지는 시간 부여
             const duration = Math.random() * 1.5 + 1;
             conf.style.animation = `confetti-fall ${duration}s ease-in forwards`;
             
             container.appendChild(conf);
-            
-            // 애니메이션 종료 후 DOM에서 제거
             setTimeout(() => conf.remove(), duration * 1000);
         }
     }
 
     // --- 데이터 설정 ---
     const quizWords = [
-        { word: "APPLE", hint: "사과", icon: "🍎", blanks: [1, 2, 4], options: ["P", "E", "R", "T"] },
-        { word: "BANANA", hint: "바나나", icon: "🍌", blanks: [1, 3, 5], options: ["A", "N", "B", "M"] },
-        { word: "ORANGE", hint: "오렌지", icon: "🍊", blanks: [1, 2, 5], options: ["R", "A", "G", "E"] },
-        { word: "SCHOOL", hint: "학교", icon: "🏫", blanks: [1, 2, 5], options: ["C", "H", "L", "O"] },
-        { word: "MELON", hint: "멜론", icon: "🍈", blanks: [1, 2, 3], options: ["E", "L", "O", "N"] }
+        // Level 1
+        { level: 1, word: "CAT", hint: "고양이", icon: "🐱" }, { level: 1, word: "DOG", hint: "개", icon: "🐶" },
+        { level: 1, word: "SUN", hint: "태양", icon: "☀️" }, { level: 1, word: "CAR", hint: "자동차", icon: "🚗" },
+        { level: 1, word: "HAT", hint: "모자", icon: "🧢" }, { level: 1, word: "BOY", hint: "소년", icon: "👦" },
+        { level: 1, word: "PIG", hint: "돼지", icon: "🐷" }, { level: 1, word: "BED", hint: "침대", icon: "🛏️" },
+        { level: 1, word: "CUP", hint: "컵", icon: "☕" }, { level: 1, word: "BOX", hint: "상자", icon: "📦" },
+
+        // Level 2
+        { level: 2, word: "BIRD", hint: "새", icon: "🐦" }, { level: 2, word: "FISH", hint: "물고기", icon: "🐟" },
+        { level: 2, word: "TREE", hint: "나무", icon: "🌳" }, { level: 2, word: "STAR", hint: "별", icon: "⭐" },
+        { level: 2, word: "BOOK", hint: "책", icon: "📖" }, { level: 2, word: "MILK", hint: "우유", icon: "🥛" },
+        { level: 2, word: "DUCK", hint: "오리", icon: "🦆" }, { level: 2, word: "MOON", hint: "달", icon: "🌙" },
+        { level: 2, word: "SHOE", hint: "신발", icon: "👞" }, { level: 2, word: "DOOR", hint: "문", icon: "🚪" },
+
+        // Level 3
+        { level: 3, word: "APPLE", hint: "사과", icon: "🍎" }, { level: 3, word: "WATER", hint: "물", icon: "💧" },
+        { level: 3, word: "CLOCK", hint: "시계", icon: "⏰" }, { level: 3, word: "MOUSE", hint: "쥐", icon: "🐭" },
+        { level: 3, word: "TRAIN", hint: "기차", icon: "🚆" }, { level: 3, word: "GRAPE", hint: "포도", icon: "🍇" },
+        { level: 3, word: "HOUSE", hint: "집", icon: "🏠" }, { level: 3, word: "TIGER", hint: "호랑이", icon: "🐯" },
+        { level: 3, word: "CHAIR", hint: "의자", icon: "🪑" }, { level: 3, word: "PANDA", hint: "판다", icon: "🐼" },
+
+        // Level 4
+        { level: 4, word: "RABBIT", hint: "토끼", icon: "🐰" }, { level: 4, word: "BANANA", hint: "바나나", icon: "🍌" },
+        { level: 4, word: "YELLOW", hint: "노란색", icon: "🟨" }, { level: 4, word: "PENCIL", hint: "연필", icon: "✏️" },
+        { level: 4, word: "FLOWER", hint: "꽃", icon: "🌸" }, { level: 4, word: "MONKEY", hint: "원숭이", icon: "🐒" },
+        { level: 4, word: "SCHOOL", hint: "학교", icon: "🏫" }, { level: 4, word: "ORANGE", hint: "오렌지", icon: "🍊" },
+        { level: 4, word: "CHEESE", hint: "치즈", icon: "🧀" }, { level: 4, word: "WINDOW", hint: "창문", icon: "🪟" },
+
+        // Level 5
+        { level: 5, word: "DOCTOR", hint: "의사", icon: "👨‍⚕️" }, { level: 5, word: "ANIMAL", hint: "동물", icon: "🐾" },
+        { level: 5, word: "CAMERA", hint: "카메라", icon: "📷" }, { level: 5, word: "GUITAR", hint: "기타", icon: "🎸" },
+        { level: 5, word: "SUMMER", hint: "여름", icon: "☀️" }, { level: 5, word: "WINTER", hint: "겨울", icon: "❄️" },
+        { level: 5, word: "POLICE", hint: "경찰", icon: "👮" }, { level: 5, word: "PLANET", hint: "행성", icon: "🪐" },
+        { level: 5, word: "FAMILY", hint: "가족", icon: "👨‍👩‍👧‍👦" }, { level: 5, word: "ROCKET", hint: "로켓", icon: "🚀" },
+
+        // Level 6
+        { level: 6, word: "ELEPHANT", hint: "코끼리", icon: "🐘" }, { level: 6, word: "DINOSAUR", hint: "공룡", icon: "🦖" },
+        { level: 6, word: "HOSPITAL", hint: "병원", icon: "🏥" }, { level: 6, word: "AIRPLANE", hint: "비행기", icon: "✈️" },
+        { level: 6, word: "UMBRELLA", hint: "우산", icon: "☂️" }, { level: 6, word: "COMPUTER", hint: "컴퓨터", icon: "💻" },
+        { level: 6, word: "RAINBOW", hint: "무지개", icon: "🌈" }, { level: 6, word: "TEACHER", hint: "선생님", icon: "👩‍🏫" },
+        { level: 6, word: "BASEBALL", hint: "야구", icon: "⚾" }, { level: 6, word: "MOUNTAIN", hint: "산", icon: "⛰️" }
     ];
+
+    // --- 진화 시스템 이모지 ---
+    const evolutionEmojis = {
+        1: '🦎', // 아기 도마뱀
+        2: '🐢', // 꼬마 거북이
+        3: '🐊', // 날쌘 악어
+        4: '🦖', // 티라노
+        5: '🦕', // 브라키오
+        6: '🐉'  // 마스터 드래곤
+    };
 
     // --- 게임 변수 ---
     const canvas = document.getElementById('gameCanvas');
@@ -216,7 +284,7 @@
     let isInvincible = false;
     let invincibleTimer = 0;
 
-    // 다이노 설정
+    // 다이노 설정 (초기값은 레벨 1 이모지)
     const dino = {
         x: 50,
         y: 0,
@@ -226,7 +294,7 @@
         jumpForce: 15,
         gravity: 0.8,
         grounded: false,
-        emoji: '🦖'
+        emoji: evolutionEmojis[1] 
     };
 
     const plantEmojis = ['🌵', '🌲', '🌴', '🪴'];
@@ -235,11 +303,15 @@
     let frameCount = 0;
     let gameStarted = false;
 
-    // --- 생명 및 퀴즈 변수 ---
+    // --- 생명, 퀴즈, 타이머 변수 ---
     let lives = 3;
     const MAX_LIVES = 3;
     let currentQuizIndex = 0;
-    let solvedCount = 0;
+    let isQuizTransitioning = false; // 정답 맞추고 다음 퀴즈 넘어가는 대기 상태
+    
+    // 도화선 타이머 (초당 60프레임 * 10초 = 600)
+    const QUIZ_TIME_LIMIT = 600; 
+    let quizTimer = QUIZ_TIME_LIMIT;
 
     // --- 초기화 및 실행 ---
     window.onload = () => {
@@ -247,7 +319,7 @@
         updateLivesDisplay();
         initQuiz();
         
-        // 클릭/터치 이벤트
+        // 클릭/터치/키보드 이벤트 
         document.getElementById('game-container').addEventListener('mousedown', () => {
             if(!gameStarted) return;
             if(gameActive) handleJump();
@@ -260,7 +332,6 @@
             else resetGame();
         });
 
-        // 키보드 이벤트
         window.addEventListener('keydown', (e) => {
             if(!gameStarted) return;
             if (e.code === 'Space' || e.key === ' ' || e.code === 'ArrowUp') {
@@ -273,26 +344,15 @@
 
     function startGame() {
         gameStarted = true;
-        
-        // 브라우저 오디오 컨텍스트 락 해제 (사용자 인터랙션 시)
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
 
         try {
             const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => console.log(err));
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            }
-        } catch (error) {
-            console.log("미리보기 환경에서는 전체화면이 제한될 수 있습니다.");
-        }
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(e => {});
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        } catch (error) {}
         
-        if (document.activeElement) {
-            document.activeElement.blur();
-        }
+        if (document.activeElement) document.activeElement.blur();
 
         document.getElementById('start-screen').classList.add('hidden');
         resizeCanvas();
@@ -312,7 +372,7 @@
         if (dino.grounded) {
             dino.dy = -dino.jumpForce;
             dino.grounded = false;
-            playSound('jump'); // 점프 효과음
+            playSound('jump'); 
         }
     }
 
@@ -383,15 +443,11 @@
     function updateLivesDisplay() {
         const lifeEl = document.getElementById('life-display');
         let hearts = '';
-        for(let i = 0; i < MAX_LIVES; i++) {
-            hearts += i < lives ? '❤️' : '🤍';
-        }
+        for(let i = 0; i < MAX_LIVES; i++) hearts += i < lives ? '❤️' : '🤍';
         lifeEl.innerText = hearts;
 
         lifeEl.classList.add('scale-110', 'text-red-500');
-        setTimeout(() => {
-            lifeEl.classList.remove('scale-110', 'text-red-500');
-        }, 200);
+        setTimeout(() => lifeEl.classList.remove('scale-110', 'text-red-500'), 200);
     }
 
     function updateScore() {
@@ -414,6 +470,22 @@
             container.style.backgroundColor = '#1e293b';
             scoreEl.style.color = '#f8fafc';
             highScoreEl.style.color = '#cbd5e1';
+        }
+    }
+
+    function drawNightVision() {
+        if (score >= 400) {
+            ctx.save();
+            const targetRadius = isInvincible ? Math.max(canvas.width, canvas.height) : 120;
+            const gradient = ctx.createRadialGradient(
+                dino.x + dino.width / 2, dino.y + dino.height / 2, 0,
+                dino.x + dino.width / 2, dino.y + dino.height / 2, targetRadius
+            );
+            gradient.addColorStop(0, 'rgba(30, 41, 59, 0)');
+            gradient.addColorStop(1, 'rgba(30, 41, 59, 0.98)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
         }
     }
 
@@ -450,23 +522,51 @@
         drawGround();
         drawObstacles();
         drawDino();
+        drawNightVision();
         updateScore();
 
         gameSpeed = 6 + Math.floor(score / 500);
+
+        // --- 도화선 타이머 로직 (Level 4 이상) ---
+        const currentLevel = quizWords[currentQuizIndex].level;
+        if (!isQuizTransitioning && currentLevel >= 4) {
+            quizTimer--;
+            const percentage = Math.max(0, (quizTimer / QUIZ_TIME_LIMIT) * 100);
+            document.getElementById('fuse-bar').style.width = percentage + '%';
+
+            if (quizTimer <= 0) {
+                handleTimeUp();
+            }
+        }
+
         animationId = requestAnimationFrame(animate);
+    }
+
+    function handleTimeUp() {
+        playSound('wrong');
+        lives--;
+        updateLivesDisplay();
+        
+        if (lives <= 0) {
+            showFeedback("시간 초과! 생명 소진 💀", false);
+            gameOver();
+        } else {
+            showFeedback("시간 초과! 하트가 깎입니다.", false);
+            combo = 0;
+            updateCombo();
+            quizTimer = QUIZ_TIME_LIMIT; // 타이머 리셋 후 다시 풀기
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
     }
 
     function gameOver() {
         gameActive = false;
         cancelAnimationFrame(animationId);
-        playSound('gameover'); // 게임오버 효과음
+        playSound('gameover'); 
 
         if (score > highScore) highScore = score;
         document.getElementById('game-msg').classList.remove('hidden');
-        
-        if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
-        }
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
 
     function resetGame() {
@@ -477,25 +577,64 @@
         gameActive = true;
         isInvincible = false;
         lives = 3;
+        currentQuizIndex = 0;
+        isQuizTransitioning = false;
+        dino.emoji = evolutionEmojis[1]; // 도마뱀으로 초기화
         
         document.getElementById('game-msg').classList.add('hidden');
         document.getElementById('power-bar').style.width = "0%";
         updateScore();
         updateLivesDisplay();
+        initQuiz();
         animate();
     }
 
+    // --- 동적 퀴즈 생성 로직 ---
     function initQuiz() {
         const quiz = quizWords[currentQuizIndex];
+        isQuizTransitioning = false;
+        quizTimer = QUIZ_TIME_LIMIT; // 타이머 초기화
+        
+        // 레벨 뱃지 및 텍스트 업데이트
+        document.getElementById('level-display').innerText = `LEVEL ${quiz.level}`;
         document.getElementById('hint-icon').innerText = quiz.icon;
         document.getElementById('hint-text').innerText = quiz.hint;
+        
+        // 도화선 타이머 UI 표시 여부 제어
+        const fuseContainer = document.getElementById('fuse-container');
+        if (quiz.level >= 4) {
+            fuseContainer.classList.remove('hidden');
+            document.getElementById('fuse-bar').style.width = '100%';
+        } else {
+            fuseContainer.classList.add('hidden');
+        }
         
         const wordDisplay = document.getElementById('word-display');
         wordDisplay.innerHTML = '';
         
+        let numBlanks = quiz.level <= 2 ? 1 : (quiz.level <= 4 ? 2 : 3);
+        numBlanks = Math.min(numBlanks, quiz.word.length - 1); 
+        
+        let blanks = [];
+        while(blanks.length < numBlanks) {
+            let r = Math.floor(Math.random() * quiz.word.length);
+            if(!blanks.includes(r)) blanks.push(r);
+        }
+        quiz.currentBlanks = blanks.sort((a,b) => a-b);
+        
+        let requiredLetters = quiz.currentBlanks.map(idx => quiz.word[idx]);
+        let options = [...new Set(requiredLetters)]; 
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        
+        while(options.length < 4) {
+            let randomChar = alphabet[Math.floor(Math.random() * alphabet.length)];
+            if(!options.includes(randomChar)) options.push(randomChar);
+        }
+        quiz.currentOptions = options.sort(() => Math.random() - 0.5);
+        
         quiz.word.split('').forEach((char, idx) => {
             const span = document.createElement('span');
-            if (quiz.blanks.includes(idx)) {
+            if (quiz.currentBlanks.includes(idx)) {
                 span.innerText = '_';
                 span.className = 'border-b-4 border-gray-300 w-6 sm:w-8 text-center';
                 span.id = `blank-${idx}`;
@@ -508,11 +647,12 @@
 
         const grid = document.getElementById('options-grid');
         grid.innerHTML = '';
-        quiz.options.forEach(letter => {
+        quiz.currentOptions.forEach(letter => {
             const btn = document.createElement('button');
             btn.className = 'spell-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 sm:py-4 rounded-lg sm:rounded-xl text-base sm:text-xl shadow-sm border-b-4 border-gray-300 active:border-b-0 active:mt-1';
             btn.innerText = letter;
             btn.onclick = function() {
+                if(isQuizTransitioning) return; // 넘어가는 중엔 클릭 방지
                 this.blur();
                 checkAnswer(letter);
             };
@@ -522,23 +662,24 @@
 
     function checkAnswer(letter) {
         const quiz = quizWords[currentQuizIndex];
-        const firstBlankIdx = quiz.blanks.find(idx => document.getElementById(`blank-${idx}`).innerText === '_');
+        const firstBlankIdx = quiz.currentBlanks.find(idx => document.getElementById(`blank-${idx}`).innerText === '_');
         
         if (firstBlankIdx !== undefined && quiz.word[firstBlankIdx] === letter) {
-            playSound('correct'); // 정답 효과음
+            playSound('correct'); 
             
             document.getElementById(`blank-${firstBlankIdx}`).innerText = letter;
             document.getElementById(`blank-${firstBlankIdx}`).classList.remove('text-gray-400');
             document.getElementById(`blank-${firstBlankIdx}`).classList.add('text-blue-600');
             
-            const remaining = quiz.blanks.some(idx => document.getElementById(`blank-${idx}`).innerText === '_');
+            const remaining = quiz.currentBlanks.some(idx => document.getElementById(`blank-${idx}`).innerText === '_');
             if (!remaining) {
+                isQuizTransitioning = true; // 타이머 일시정지 및 중복 클릭 방지
                 showFeedback("참 잘했어요! 무적 모드 발동!", true);
                 activatePower();
                 setTimeout(() => nextQuiz(), 1000);
             }
         } else {
-            playSound('wrong'); // 오답 효과음
+            playSound('wrong'); 
             
             lives--;
             updateLivesDisplay();
@@ -551,7 +692,6 @@
                 combo = 0;
                 updateCombo();
             }
-            
             if (navigator.vibrate) navigator.vibrate(100);
         }
     }
@@ -560,14 +700,12 @@
         const el = document.getElementById('feedback-msg');
         el.innerText = msg;
         el.className = `h-8 text-lg font-bold transition-all duration-300 opacity-100 ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
-        setTimeout(() => {
-            el.className = 'h-8 text-lg font-bold transition-all duration-300 opacity-0';
-        }, 1500);
+        setTimeout(() => el.className = 'h-8 text-lg font-bold transition-all duration-300 opacity-0', 1500);
     }
 
     function activatePower() {
-        playSound('power'); // 무적 파워업 효과음
-        fireConfetti();     // 빵빠레 파티클 쏘기
+        playSound('power'); 
+        fireConfetti();     
         
         combo++;
         updateCombo();
@@ -582,8 +720,25 @@
         document.getElementById('combo-count').innerText = combo;
     }
 
+    // --- 진화 시스템 로직 추가 ---
     function nextQuiz() {
+        const currentLevel = quizWords[currentQuizIndex].level;
         currentQuizIndex = (currentQuizIndex + 1) % quizWords.length;
+        const newLevel = quizWords[currentQuizIndex].level;
+
+        // 레벨업(진화) 발생 시
+        if (newLevel > currentLevel) {
+            dino.emoji = evolutionEmojis[newLevel];
+            playSound('levelup');
+            fireConfetti();
+            fireConfetti(); // 빵빠레 2배
+            
+            // 화면 중앙 진화 메시지 표시
+            const lvMsg = document.getElementById('levelup-msg');
+            lvMsg.classList.remove('hidden');
+            setTimeout(() => lvMsg.classList.add('hidden'), 2000);
+        }
+
         initQuiz();
     }
 </script>
