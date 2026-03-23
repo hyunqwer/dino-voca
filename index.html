@@ -112,7 +112,8 @@
                     </div>
                 </div>
 
-                <button onclick="resetGame()" class="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-full font-bold transition-transform active:scale-95 w-full shadow-md">RESTART</button>
+                <!-- 터치 방해 버그 해결됨 -->
+                <button onclick="resetGame()" class="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-full font-bold transition-transform active:scale-95 w-full shadow-md z-50 relative">RESTART</button>
             </div>
         </div>
 
@@ -226,7 +227,7 @@
         }
     }
 
-    // --- 환경 테마 데이터 (레벨별 배경, 바닥, 글씨색, 장애물 지정) ---
+    // --- 환경 테마 데이터 ---
     const themeData = {
         1: { name: "평화로운 들판", bg: '#f7f7f7', ground: '#d3d3d3', text: '#374151', hiText: '#6b7280', obstacles: ['🌵', '🌲', '🌴', '🪴'], nightVision: false },
         2: { name: "푸른 해변가", bg: '#e0f2fe', ground: '#93c5fd', text: '#1e3a8a', hiText: '#3b82f6', obstacles: ['🐚', '🦀', '🐡', '🪨'], nightVision: false },
@@ -281,7 +282,7 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     let animationId;
-    let gameState = 'PLAYING'; // PLAYING, LAST_CHANCE, GAMEOVER
+    let gameState = 'PLAYING'; 
     let score = 0;
     let highScore = 0;
     let combo = 0;
@@ -298,16 +299,14 @@
     const MAX_LIVES = 3;
     let currentQuizIndex = 0;
     let isQuizTransitioning = false; 
-    const QUIZ_TIME_LIMIT = 600; // 10초
+    const QUIZ_TIME_LIMIT = 600; 
     let quizTimer = QUIZ_TIME_LIMIT;
     
-    // 환경 테마 관련 상태 변수
     let currentGroundColor = '#d3d3d3';
     let currentNightVision = false;
 
-    // --- 라스트 찬스 & 학습 리포트용 변수 ---
     let hasUsedLastChance = false;
-    let lastChanceWordData = { level: '🆘', word: "SURVIVE", hint: "생존하다", icon: "🆘", currentBlanks: [1, 4, 6] }; // S U R V I V E
+    let lastChanceWordData = { level: '🆘', word: "SURVIVE", hint: "생존하다", icon: "🆘", currentBlanks: [1, 4, 6] }; 
     
     let masteredWords = new Set();
     let reviewWords = new Set();
@@ -318,11 +317,14 @@
         updateLivesDisplay();
         initQuiz();
         
-        document.getElementById('game-container').addEventListener('mousedown', () => {
+        // 터치 간섭 버그 수정됨 (버튼일 경우 무시)
+        document.getElementById('game-container').addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
             if(!gameStarted || gameState !== 'PLAYING') return;
             handleJump();
         });
         document.getElementById('game-container').addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
             e.preventDefault();
             if(!gameStarted || gameState !== 'PLAYING') return;
             handleJump();
@@ -372,7 +374,6 @@
 
     function createObstacle() {
         const size = 40;
-        // 현재 레벨에 맞는 테마 장애물 선택
         const currentLevel = gameState === 'LAST_CHANCE' ? 6 : quizWords[currentQuizIndex].level;
         const themeLevel = currentLevel > 6 ? 6 : currentLevel;
         const currentObstacles = themeData[themeLevel].obstacles;
@@ -435,7 +436,6 @@
         setTimeout(() => lifeEl.classList.remove('scale-110', 'text-red-500'), 200);
     }
 
-    // 테마 및 점수 UI 업데이트
     function updateUIAndTheme() {
         const scoreEl = document.getElementById('score');
         const highScoreEl = document.getElementById('high-score');
@@ -444,7 +444,6 @@
         scoreEl.innerText = `SCORE: ${String(Math.floor(score)).padStart(5, '0')}`;
         highScoreEl.innerText = `HI: ${String(Math.floor(highScore)).padStart(5, '0')}`;
 
-        // 현재 퀴즈 레벨에 맞춰 테마 적용
         const currentLevel = gameState === 'LAST_CHANCE' ? 6 : quizWords[currentQuizIndex].level;
         const themeLevel = currentLevel > 6 ? 6 : currentLevel;
         const theme = themeData[themeLevel];
@@ -499,7 +498,6 @@
         drawNightVision();
         updateUIAndTheme();
 
-        // 도화선 타이머 로직
         if (!isQuizTransitioning) {
             const currentLevel = gameState === 'LAST_CHANCE' ? 99 : quizWords[currentQuizIndex].level;
             if (currentLevel >= 4) {
@@ -592,13 +590,18 @@
     }
 
     function resetGame() {
+        // --- 초기화 시 덜 되던 버그 수정 ---
         score = 0; obstacles = []; frameCount = 0; gameSpeed = 6;
+        combo = 0; // 콤보 초기화
+        dino.dy = 0; // 다이노 속도 초기화
+        
         gameState = 'PLAYING';
         isInvincible = false; lives = 3; currentQuizIndex = 0; isQuizTransitioning = false;
         dino.emoji = evolutionEmojis[1]; 
         
         hasUsedLastChance = false;
         masteredWords.clear(); reviewWords.clear();
+        
         const quizHeader = document.getElementById('quiz-header-area');
         quizHeader.classList.remove('bg-red-100');
         document.getElementById('level-display').classList.replace('bg-red-600', 'bg-blue-100');
@@ -609,12 +612,13 @@
         document.getElementById('game-msg').classList.add('hidden');
         document.getElementById('power-bar').style.width = "0%";
         updateLivesDisplay();
+        updateCombo(); 
         
         const buttons = document.querySelectorAll('.spell-btn');
         buttons.forEach(btn => { btn.classList.remove('opacity-50', 'cursor-not-allowed'); btn.disabled = false; });
 
         initQuiz();
-        updateUIAndTheme(); // 배경 초기화
+        updateUIAndTheme(); 
         animate();
     }
 
@@ -637,7 +641,6 @@
     }
 
     function renderQuizOptions(quizData) {
-        // 테마 이름을 포함하여 레벨 표시 업데이트
         const themeLevel = quizData.level > 6 ? 6 : (quizData.level === '🆘' ? 6 : quizData.level);
         const themeName = quizData.level === '🆘' ? 'LAST CHANCE' : `LEVEL ${quizData.level} : ${themeData[themeLevel].name}`;
         
