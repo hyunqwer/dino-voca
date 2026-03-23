@@ -11,12 +11,45 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DinoSpell">
     
-    <!-- 파비콘 및 애플 터치 아이콘 설정 (유저 업로드 이미지 적용) -->
+    <!-- 파비콘 및 애플 터치 아이콘 설정 -->
     <link rel="icon" type="image/jpeg" href="image_20362e.jpg">
     <link rel="apple-touch-icon" href="image_20362e.jpg">
     
-    <!-- 단일 파일 PWA 매니페스트 (data URI 방식) -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Dino Spelling Master","short_name":"DinoSpell","start_url":".","display":"standalone","background_color":"#f3f4f6","theme_color":"#3b82f6","icons":[{"src":"image_20362e.jpg","sizes":"512x512","type":"image/jpeg","purpose":"any maskable"}]}'>
+    <!-- 자바스크립트를 이용한 PWA 매니페스트 동적 생성 (상대 경로 유실 및 미리보기 에러 해결) -->
+    <script>
+        try {
+            let iconUrl = "image_20362e.jpg";
+            let startUrl = ".";
+            
+            // 미리보기 환경(blob: 등)에서는 URL 생성이 실패할 수 있으므로 예외 처리
+            try {
+                iconUrl = new URL("image_20362e.jpg", window.location.href).href;
+                startUrl = new URL(".", window.location.href).href;
+            } catch (e) {
+                console.warn("Using relative URLs for manifest in preview environment.");
+            }
+
+            const manifest = {
+                name: "Dino Spelling Master",
+                short_name: "DinoSpell",
+                start_url: startUrl,
+                display: "standalone",
+                background_color: "#f3f4f6",
+                theme_color: "#3b82f6",
+                icons: [
+                    { src: iconUrl, sizes: "192x192", type: "image/jpeg", purpose: "any maskable" },
+                    { src: iconUrl, sizes: "512x512", type: "image/jpeg", purpose: "any maskable" }
+                ]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+            const link = document.createElement("link");
+            link.rel = "manifest";
+            link.href = URL.createObjectURL(blob);
+            document.head.appendChild(link);
+        } catch (error) {
+            console.error("PWA Manifest creation failed:", error);
+        }
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
