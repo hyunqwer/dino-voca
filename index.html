@@ -72,61 +72,58 @@
 
         <!-- 레벨업(진화) 알림 메시지 -->
         <div id="levelup-msg" class="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 hidden pointer-events-none">
-            <h2 class="text-4xl font-black text-yellow-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] animate-bounce">LEVEL UP! 진화!!</h2>
+            <h2 class="text-4xl font-black text-yellow-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] animate-bounce w-max">LEVEL UP! 진화!!</h2>
         </div>
 
         <canvas id="gameCanvas"></canvas>
     </div>
 
     <!-- 우측(또는 하단): 스펠링 퀴즈 영역 -->
-    <!-- 수정됨: overflow-hidden을 overflow-y-auto로 변경하고 p-3 sm:p-6을 p-2 sm:p-4로 줄임 -->
-    <div id="quiz-container" class="flex-1 landscape:flex-[4] bg-white flex flex-col p-2 sm:p-4 shadow-2xl z-10 overflow-y-auto relative">
+    <div id="quiz-container" class="flex-1 landscape:flex-[4] bg-white flex flex-col p-2 sm:p-4 shadow-2xl z-10 relative h-full overflow-hidden">
         
         <!-- 생명(하트) 표시 영역 -->
-        <!-- 수정됨: top, right 간격을 줄이고 폰트 크기도 최적화 -->
         <div id="life-display" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-sm sm:text-xl tracking-widest z-20 transition-all duration-300">
             ❤️❤️❤️
         </div>
 
-        <!-- 수정됨: space-y-를 줄이고 상하 패딩 조정하여 촘촘하게 배치 -->
-        <div class="flex-1 flex flex-col items-center justify-center min-h-0 w-full px-2 py-2">
-            <div class="text-center w-full flex flex-col items-center">
+        <!-- 스크롤 가능한 중앙 영역 (영역 분리 적용) -->
+        <div class="flex-1 flex flex-col items-center justify-center min-h-0 w-full px-2 overflow-y-auto">
+            <div class="text-center w-full flex flex-col items-center mt-2">
                 <!-- 레벨 뱃지 및 도화선 타이머 -->
                 <div id="level-display" class="inline-block bg-blue-100 text-blue-800 text-[10px] sm:text-sm font-bold px-2 py-0.5 rounded-full shadow-sm mb-1">LEVEL 1</div>
                 
-                <!-- 도화선 타이머 (Level 4부터 표시) -->
-                <div id="fuse-container" class="w-full max-w-[150px] sm:max-w-[200px] h-1.5 sm:h-2 bg-gray-200 rounded-full mt-1 mx-auto overflow-hidden hidden">
+                <!-- 도화선 타이머 -->
+                <div id="fuse-container" class="w-full max-w-[150px] sm:max-w-[200px] h-1.5 sm:h-2 bg-gray-200 rounded-full mt-1 mx-auto overflow-hidden hidden shrink-0">
                     <div id="fuse-bar" class="h-full bg-red-500 w-full"></div>
                 </div>
 
                 <div class="mt-1">
                     <span class="text-[9px] sm:text-xs font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
                 </div>
-                <!-- 수정됨: 힌트 아이콘과 텍스트 크기 및 여백 대폭 축소 -->
+                <!-- 힌트 아이콘 -->
                 <div id="hint-icon" class="text-3xl sm:text-5xl mt-0.5 mb-0.5">🍎</div>
                 <h2 id="hint-text" class="text-lg sm:text-2xl font-black text-gray-800">사과</h2>
             </div>
 
-            <!-- 수정됨: 글자 크기와 갭 축소 -->
+            <!-- 단어 빈칸 표시 -->
             <div id="word-display" class="flex gap-1 sm:gap-2 text-xl sm:text-3xl font-mono font-bold text-gray-800 my-1 sm:my-3">
                 <!-- A _ _ L E 형태 -->
             </div>
 
-            <!-- 메시지 박스 (결과 알림) -->
+            <!-- 메시지 박스 -->
             <div id="feedback-msg" class="h-5 sm:h-8 text-xs sm:text-base font-bold transition-all duration-300 opacity-0 mb-1 sm:mb-2">
                 정답입니다! (+보너스)
             </div>
 
-            <!-- 선택 블록 영역 -->
-            <!-- 수정됨: 그리드 간격 축소 및 버튼 컨테이너 크기 조절 -->
-            <div id="options-grid" class="grid grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-[160px] sm:max-w-xs mt-auto mb-2">
+            <!-- 선택 블록 영역 (1줄 가로 배치 적용) -->
+            <div id="options-grid" class="flex flex-row gap-1.5 sm:gap-2 w-full justify-center max-w-[280px] sm:max-w-xs mt-auto mb-2">
                 <!-- 버튼들 -->
             </div>
         </div>
 
-        <!-- 하단 상태바 -->
-        <div class="mt-auto pt-1 sm:pt-4 border-t border-gray-100 shrink-0">
-            <div class="flex items-center justify-between text-[10px] sm:text-xs text-gray-400 font-medium">
+        <!-- 하단 상태바 (스크롤과 무관하게 바닥에 고정) -->
+        <div class="shrink-0 pt-2 sm:pt-4 border-t border-gray-100 bg-white z-10">
+            <div class="flex items-center justify-between text-[10px] sm:text-xs text-gray-400 font-medium px-1">
                 <span>COMBO: <span id="combo-count" class="text-orange-500 font-bold">0</span></span>
                 <span>Power Mode: <span id="power-status">OFF</span></span>
             </div>
@@ -138,7 +135,7 @@
 </div>
 
 <script>
-// --- 효과음 (Web Audio API) 설정 ---
+    // --- 효과음 (Web Audio API) 설정 ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCtx = new AudioContext();
 
@@ -243,7 +240,7 @@
 
         // Level 3
         { level: 3, word: "APPLE", hint: "사과", icon: "🍎" }, { level: 3, word: "WATER", hint: "물", icon: "💧" },
-        { level: 3, word: "CLOCK", hint: "시계", icon: "⏰" }, { level: 3, word: "MOUSE", hint: "쥐", icon: "🐭" },
+        { level: 3, word: "CLOCK", 시계: "시계", icon: "⏰" }, { level: 3, word: "MOUSE", hint: "쥐", icon: "🐭" },
         { level: 3, word: "TRAIN", hint: "기차", icon: "🚆" }, { level: 3, word: "GRAPE", hint: "포도", icon: "🍇" },
         { level: 3, word: "HOUSE", hint: "집", icon: "🏠" }, { level: 3, word: "TIGER", hint: "호랑이", icon: "🐯" },
         { level: 3, word: "CHAIR", hint: "의자", icon: "🪑" }, { level: 3, word: "PANDA", hint: "판다", icon: "🐼" },
@@ -291,7 +288,7 @@
     let isInvincible = false;
     let invincibleTimer = 0;
 
-    // 다이노 설정 (초기값은 레벨 1 이모지)
+    // 다이노 설정
     const dino = {
         x: 50,
         y: 0,
@@ -314,7 +311,7 @@
     let lives = 3;
     const MAX_LIVES = 3;
     let currentQuizIndex = 0;
-    let isQuizTransitioning = false; // 정답 맞추고 다음 퀴즈 넘어가는 대기 상태
+    let isQuizTransitioning = false; 
     
     // 도화선 타이머 (초당 60프레임 * 10초 = 600)
     const QUIZ_TIME_LIMIT = 600; 
@@ -326,7 +323,6 @@
         updateLivesDisplay();
         initQuiz();
         
-        // 클릭/터치/키보드 이벤트 
         document.getElementById('game-container').addEventListener('mousedown', () => {
             if(!gameStarted) return;
             if(gameActive) handleJump();
@@ -534,7 +530,7 @@
 
         gameSpeed = 6 + Math.floor(score / 500);
 
-        // --- 도화선 타이머 로직 (Level 4 이상) ---
+        // --- 도화선 타이머 로직 ---
         const currentLevel = quizWords[currentQuizIndex].level;
         if (!isQuizTransitioning && currentLevel >= 4) {
             quizTimer--;
@@ -561,7 +557,7 @@
             showFeedback("시간 초과! 하트가 깎입니다.", false);
             combo = 0;
             updateCombo();
-            quizTimer = QUIZ_TIME_LIMIT; // 타이머 리셋 후 다시 풀기
+            quizTimer = QUIZ_TIME_LIMIT; 
             if (navigator.vibrate) navigator.vibrate(100);
         }
     }
@@ -586,7 +582,7 @@
         lives = 3;
         currentQuizIndex = 0;
         isQuizTransitioning = false;
-        dino.emoji = evolutionEmojis[1]; // 도마뱀으로 초기화
+        dino.emoji = evolutionEmojis[1]; 
         
         document.getElementById('game-msg').classList.add('hidden');
         document.getElementById('power-bar').style.width = "0%";
@@ -600,14 +596,12 @@
     function initQuiz() {
         const quiz = quizWords[currentQuizIndex];
         isQuizTransitioning = false;
-        quizTimer = QUIZ_TIME_LIMIT; // 타이머 초기화
+        quizTimer = QUIZ_TIME_LIMIT; 
         
-        // 레벨 뱃지 및 텍스트 업데이트
         document.getElementById('level-display').innerText = `LEVEL ${quiz.level}`;
         document.getElementById('hint-icon').innerText = quiz.icon;
-        document.getElementById('hint-text').innerText = quiz.hint;
+        document.getElementById('hint-text').innerText = quiz.hint || quiz.word; // Fallback added for missing hint
         
-        // 도화선 타이머 UI 표시 여부 제어
         const fuseContainer = document.getElementById('fuse-container');
         if (quiz.level >= 4) {
             fuseContainer.classList.remove('hidden');
@@ -643,8 +637,7 @@
             const span = document.createElement('span');
             if (quiz.currentBlanks.includes(idx)) {
                 span.innerText = '_';
-                // 수정됨: 밑줄 크기와 너비 축소
-                span.className = 'border-b-2 sm:border-b-4 border-gray-300 w-5 sm:w-8 text-center';
+                span.className = 'border-b-2 sm:border-b-4 border-gray-400 w-5 sm:w-8 text-center';
                 span.id = `blank-${idx}`;
             } else {
                 span.innerText = char;
@@ -653,15 +646,16 @@
             wordDisplay.appendChild(span);
         });
 
+        // 1줄 배열 및 크기 최적화 (Flex Row)
         const grid = document.getElementById('options-grid');
         grid.innerHTML = '';
         quiz.currentOptions.forEach(letter => {
             const btn = document.createElement('button');
-            // 수정됨: 버튼 패딩, 폰트 크기, 하단 테두리 두께 축소
-            btn.className = 'spell-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-1.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-lg shadow-sm border-b-2 sm:border-b-4 border-gray-300 active:border-b-0 active:mt-0.5 sm:active:mt-1';
+            // 버튼 디자인 최적화: 1줄에 4개가 쏙 들어가도록 비율 조절
+            btn.className = 'spell-btn flex-1 aspect-square bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-lg sm:rounded-xl text-lg sm:text-2xl shadow-sm border-b-2 sm:border-b-4 border-gray-300 active:border-b-0 active:mt-0.5 sm:active:mt-1 flex items-center justify-center';
             btn.innerText = letter;
             btn.onclick = function() {
-                if(isQuizTransitioning) return; // 넘어가는 중엔 클릭 방지
+                if(isQuizTransitioning) return; 
                 this.blur();
                 checkAnswer(letter);
             };
@@ -682,7 +676,7 @@
             
             const remaining = quiz.currentBlanks.some(idx => document.getElementById(`blank-${idx}`).innerText === '_');
             if (!remaining) {
-                isQuizTransitioning = true; // 타이머 일시정지 및 중복 클릭 방지
+                isQuizTransitioning = true; 
                 showFeedback("참 잘했어요! 무적 모드 발동!", true);
                 activatePower();
                 setTimeout(() => nextQuiz(), 1000);
@@ -708,8 +702,8 @@
     function showFeedback(msg, isSuccess) {
         const el = document.getElementById('feedback-msg');
         el.innerText = msg;
-        el.className = `h-8 text-lg font-bold transition-all duration-300 opacity-100 ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
-        setTimeout(() => el.className = 'h-8 text-lg font-bold transition-all duration-300 opacity-0', 1500);
+        el.className = `h-5 sm:h-8 text-xs sm:text-base font-bold transition-all duration-300 opacity-100 mb-1 sm:mb-2 ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
+        setTimeout(() => el.className = 'h-5 sm:h-8 text-xs sm:text-base font-bold transition-all duration-300 opacity-0 mb-1 sm:mb-2', 1500);
     }
 
     function activatePower() {
@@ -729,20 +723,17 @@
         document.getElementById('combo-count').innerText = combo;
     }
 
-    // --- 진화 시스템 로직 추가 ---
     function nextQuiz() {
         const currentLevel = quizWords[currentQuizIndex].level;
         currentQuizIndex = (currentQuizIndex + 1) % quizWords.length;
         const newLevel = quizWords[currentQuizIndex].level;
 
-        // 레벨업(진화) 발생 시
         if (newLevel > currentLevel) {
-            dino.emoji = evolutionEmojis[newLevel];
+            dino.emoji = evolutionEmojis[newLevel] || evolutionEmojis[6];
             playSound('levelup');
             fireConfetti();
-            fireConfetti(); // 빵빠레 2배
+            fireConfetti(); 
             
-            // 화면 중앙 진화 메시지 표시
             const lvMsg = document.getElementById('levelup-msg');
             lvMsg.classList.remove('hidden');
             setTimeout(() => lvMsg.classList.add('hidden'), 2000);
