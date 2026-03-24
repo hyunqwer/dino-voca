@@ -60,10 +60,9 @@
         .confetti-piece { position: absolute; width: 8px; height: 16px; z-index: 50; pointer-events: none; }
         
         /* 커스텀 스크롤바 */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-[100dvh] w-screen overflow-hidden">
@@ -91,10 +90,8 @@
             <div class="bg-white/95 p-4 sm:p-6 rounded-2xl shadow-2xl text-center w-11/12 max-w-sm flex flex-col items-center max-h-[90vh] overflow-y-auto">
                 <h2 class="text-3xl font-black text-gray-800 mb-3">GAME OVER</h2>
                 
-                <!-- 학습 리포트 카드 영역 -->
                 <div class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4 text-left shadow-inner">
                     <h3 class="font-bold text-blue-600 border-b border-gray-200 pb-1 mb-2 text-sm sm:text-base">📊 학습 리포트</h3>
-                    
                     <div class="mb-2">
                         <p class="text-xs sm:text-sm font-semibold text-green-600 flex justify-between">
                             <span>✅ 완벽 마스터</span>
@@ -102,7 +99,6 @@
                         </p>
                         <p id="master-list" class="text-[10px] sm:text-xs text-gray-600 mt-1 leading-relaxed break-words"></p>
                     </div>
-                    
                     <div>
                         <p class="text-xs sm:text-sm font-semibold text-red-500 flex justify-between">
                             <span>📝 다시 볼 단어</span>
@@ -112,7 +108,6 @@
                     </div>
                 </div>
 
-                <!-- 터치 방해 버그 해결됨 -->
                 <button onclick="resetGame()" class="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-full font-bold transition-transform active:scale-95 w-full shadow-md z-50 relative">RESTART</button>
             </div>
         </div>
@@ -124,47 +119,57 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 
-    <!-- 우측(또는 하단): 스펠링 퀴즈 영역 -->
-    <div id="quiz-container" class="flex-1 landscape:flex-[4] bg-white flex flex-col p-2 sm:p-4 shadow-2xl z-10 relative h-full overflow-hidden">
+    <!-- 우측(또는 하단): 스펠링 퀴즈 영역 (UI 잘림 완벽 해결) -->
+    <div id="quiz-container" class="flex-1 landscape:flex-[4] bg-white flex flex-col p-1.5 sm:p-3 shadow-2xl z-10 relative h-full overflow-hidden">
         
-        <div id="life-display" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-sm sm:text-xl tracking-widest z-20 transition-all duration-300">
-            ❤️❤️❤️
+        <!-- 상단 헤더: 레벨 및 하트 (겹침 해결을 위해 나란히 배치) -->
+        <div class="flex justify-between items-center w-full shrink-0 mb-1 px-1">
+            <div id="level-display" class="inline-block bg-blue-100 text-blue-800 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-sm transition-colors duration-300 truncate max-w-[65%]">
+                LEVEL 1
+            </div>
+            <div id="life-display" class="text-xs sm:text-lg tracking-widest z-20 transition-all duration-300 whitespace-nowrap">
+                ❤️❤️❤️
+            </div>
         </div>
 
-        <div class="flex-1 flex flex-col items-center justify-center min-h-0 w-full px-2 overflow-y-auto">
-            <div class="text-center w-full flex flex-col items-center mt-2 transition-colors duration-300 rounded-lg py-1" id="quiz-header-area">
-                <div id="level-display" class="inline-block bg-blue-100 text-blue-800 text-[10px] sm:text-sm font-bold px-2 py-0.5 rounded-full shadow-sm mb-1 transition-colors duration-300">LEVEL 1</div>
-                
-                <div id="fuse-container" class="w-full max-w-[150px] sm:max-w-[200px] h-1.5 sm:h-2 bg-gray-200 rounded-full mt-1 mx-auto overflow-hidden hidden shrink-0">
-                    <div id="fuse-bar" class="h-full bg-red-500 w-full transition-all duration-100 ease-linear"></div>
-                </div>
+        <!-- 도화선 타이머 -->
+        <div id="fuse-container" class="w-full max-w-[150px] sm:max-w-[200px] h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden hidden shrink-0 mb-1">
+            <div id="fuse-bar" class="h-full bg-red-500 w-full transition-all duration-100 ease-linear"></div>
+        </div>
 
-                <div class="mt-1">
-                    <span id="quiz-subtitle" class="text-[9px] sm:text-xs font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
-                </div>
-                <div id="hint-icon" class="text-3xl sm:text-5xl mt-0.5 mb-0.5">🍎</div>
-                <h2 id="hint-text" class="text-lg sm:text-2xl font-black text-gray-800">사과</h2>
+        <!-- 스크롤 가능한 중앙 영역 (초압축 패딩 적용) -->
+        <div class="flex-1 flex flex-col items-center justify-evenly min-h-0 w-full px-1 overflow-y-auto pb-1" id="quiz-header-area">
+            
+            <div class="text-center w-full flex flex-col items-center rounded-lg">
+                <span id="quiz-subtitle" class="text-[8px] sm:text-[10px] font-bold text-blue-500 uppercase tracking-widest">Spelling Quiz</span>
+                <!-- 아이콘 및 텍스트 폰트 크기 및 여백 축소 -->
+                <div id="hint-icon" class="text-2xl sm:text-4xl mt-0.5">🍎</div>
+                <h2 id="hint-text" class="text-base sm:text-xl font-black text-gray-800 mt-0.5">사과</h2>
             </div>
 
-            <div id="word-display" class="flex gap-1 sm:gap-2 text-xl sm:text-3xl font-mono font-bold text-gray-800 my-1 sm:my-3">
+            <!-- 단어 빈칸 표시 -->
+            <div id="word-display" class="flex gap-1 sm:gap-2 text-lg sm:text-2xl font-mono font-bold text-gray-800 my-1">
                 <!-- 빈칸 영역 -->
             </div>
 
-            <div id="feedback-msg" class="h-5 sm:h-8 text-xs sm:text-base font-bold transition-all duration-300 opacity-0 mb-1 sm:mb-2 flex items-center justify-center text-center">
+            <!-- 메시지 박스 -->
+            <div id="feedback-msg" class="h-4 sm:h-6 text-[10px] sm:text-sm font-bold transition-all duration-300 opacity-0 mb-1 flex items-center justify-center text-center">
                 정답입니다! (+보너스)
             </div>
 
-            <div id="options-grid" class="flex flex-row gap-1.5 sm:gap-2 w-full justify-center max-w-[280px] sm:max-w-xs mt-auto mb-2">
-                <!-- 선택 버튼 영역 -->
+            <!-- 선택 블록 영역 (aspect-square 제거하여 높이 폭주 방지) -->
+            <div id="options-grid" class="flex flex-row gap-1 sm:gap-2 w-full justify-center max-w-[280px] sm:max-w-xs shrink-0">
+                <!-- 버튼들 -->
             </div>
         </div>
 
-        <div class="shrink-0 pt-2 sm:pt-4 border-t border-gray-100 bg-white z-10">
-            <div class="flex items-center justify-between text-[10px] sm:text-xs text-gray-400 font-medium px-1">
+        <!-- 하단 상태바 -->
+        <div class="shrink-0 pt-1.5 sm:pt-2 border-t border-gray-100 bg-white z-10 pb-0.5">
+            <div class="flex items-center justify-between text-[9px] sm:text-[10px] text-gray-400 font-medium px-1">
                 <span>COMBO: <span id="combo-count" class="text-orange-500 font-bold">0</span></span>
                 <span>Power Mode: <span id="power-status">OFF</span></span>
             </div>
-            <div class="w-full bg-gray-200 h-1 sm:h-1.5 rounded-full mt-1 overflow-hidden">
+            <div class="w-full bg-gray-200 h-1 rounded-full mt-0.5 overflow-hidden">
                 <div id="power-bar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
             </div>
         </div>
@@ -238,7 +243,7 @@
     };
 
     // --- 데이터 설정 ---
-    const quizWords = [
+    let quizWords = [
         { level: 1, word: "CAT", hint: "고양이", icon: "🐱" }, { level: 1, word: "DOG", hint: "개", icon: "🐶" },
         { level: 1, word: "SUN", hint: "태양", icon: "☀️" }, { level: 1, word: "CAR", hint: "자동차", icon: "🚗" },
         { level: 1, word: "HAT", hint: "모자", icon: "🧢" }, { level: 1, word: "BOY", hint: "소년", icon: "👦" },
@@ -275,6 +280,24 @@
         { level: 6, word: "RAINBOW", hint: "무지개", icon: "🌈" }, { level: 6, word: "TEACHER", hint: "선생님", icon: "👩‍🏫" },
         { level: 6, word: "BASEBALL", hint: "야구", icon: "⚾" }, { level: 6, word: "MOUNTAIN", hint: "산", icon: "⛰️" }
     ];
+
+    function shuffleQuizWords() {
+        let levelsMap = {};
+        quizWords.forEach(w => {
+            if (!levelsMap[w.level]) levelsMap[w.level] = [];
+            levelsMap[w.level].push(w);
+        });
+
+        let shuffledWords = [];
+        const maxLevel = Math.max(...Object.keys(levelsMap).map(Number));
+        for (let i = 1; i <= maxLevel; i++) {
+            if (levelsMap[i]) {
+                levelsMap[i].sort(() => Math.random() - 0.5);
+                shuffledWords.push(...levelsMap[i]);
+            }
+        }
+        quizWords = shuffledWords;
+    }
 
     const evolutionEmojis = { 1: '🦎', 2: '🐢', 3: '🐊', 4: '🦖', 5: '🦕', 6: '🐉' };
 
@@ -313,11 +336,11 @@
     let currentQuizMistakes = 0; 
 
     window.onload = () => {
+        shuffleQuizWords();
         resizeCanvas();
         updateLivesDisplay();
         initQuiz();
         
-        // 터치 간섭 버그 수정됨 (버튼일 경우 무시)
         document.getElementById('game-container').addEventListener('mousedown', (e) => {
             if (e.target.tagName === 'BUTTON') return;
             if(!gameStarted || gameState !== 'PLAYING') return;
@@ -590,10 +613,10 @@
     }
 
     function resetGame() {
-        // --- 초기화 시 덜 되던 버그 수정 ---
+        shuffleQuizWords(); 
         score = 0; obstacles = []; frameCount = 0; gameSpeed = 6;
-        combo = 0; // 콤보 초기화
-        dino.dy = 0; // 다이노 속도 초기화
+        combo = 0; 
+        dino.dy = 0; 
         
         gameState = 'PLAYING';
         isInvincible = false; lives = 3; currentQuizIndex = 0; isQuizTransitioning = false;
@@ -672,20 +695,21 @@
             const span = document.createElement('span');
             if (quizData.currentBlanks.includes(idx)) {
                 span.innerText = '_';
-                span.className = 'border-b-2 sm:border-b-4 border-gray-400 w-5 sm:w-8 text-center';
+                span.className = 'border-b-2 border-gray-400 w-4 sm:w-8 text-center';
                 span.id = `blank-${idx}`;
             } else {
                 span.innerText = char;
-                span.className = 'w-5 sm:w-8 text-center text-gray-400';
+                span.className = 'w-4 sm:w-8 text-center text-gray-400';
             }
             wordDisplay.appendChild(span);
         });
 
+        // 1줄 배열 및 크기 최적화 (높이 고정)
         const grid = document.getElementById('options-grid');
         grid.innerHTML = '';
         quizData.currentOptions.forEach(letter => {
             const btn = document.createElement('button');
-            btn.className = 'spell-btn flex-1 aspect-square bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-lg sm:rounded-xl text-lg sm:text-2xl shadow-sm border-b-2 sm:border-b-4 border-gray-300 active:border-b-0 active:mt-0.5 sm:active:mt-1 flex items-center justify-center';
+            btn.className = 'spell-btn flex-1 h-8 sm:h-12 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-lg sm:rounded-xl text-base sm:text-xl shadow-sm border-b-2 border-gray-300 active:border-b-0 active:mt-0.5 flex items-center justify-center';
             btn.innerText = letter;
             btn.onclick = function() {
                 if(isQuizTransitioning || gameState === 'GAMEOVER') return; 
@@ -764,8 +788,8 @@
     function showFeedback(msg, isSuccess) {
         const el = document.getElementById('feedback-msg');
         el.innerText = msg;
-        el.className = `h-5 sm:h-8 text-xs sm:text-base font-bold transition-all duration-300 opacity-100 mb-1 sm:mb-2 ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
-        setTimeout(() => el.className = 'h-5 sm:h-8 text-xs sm:text-base font-bold transition-all duration-300 opacity-0 mb-1 sm:mb-2', 1500);
+        el.className = `h-4 sm:h-6 text-[10px] sm:text-sm font-bold transition-all duration-300 opacity-100 mb-1 flex items-center justify-center text-center ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
+        setTimeout(() => el.className = 'h-4 sm:h-6 text-[10px] sm:text-sm font-bold transition-all duration-300 opacity-0 mb-1 flex items-center justify-center text-center', 1500);
     }
 
     function activatePower() {
